@@ -23,6 +23,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.primitives.Bytes;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -33,6 +34,7 @@ import android.net.Uri;
 import android.nfc.NdefRecord;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
@@ -42,6 +44,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -107,6 +110,9 @@ public class UriRecord extends ParsedNdefRecord implements OnClickListener {
     @Override
     public void onClick(View view) {
         RecordUtils.ClickInfo info = (RecordUtils.ClickInfo) view.getTag();
+        if (requestPermissionIfNeeded(info.activity, info.intent)) {
+            return;
+        }
         try {
             info.activity.startActivity(info.intent);
             info.activity.finish();
@@ -143,5 +149,21 @@ public class UriRecord extends ParsedNdefRecord implements OnClickListener {
      */
     public static NdefRecord newUriRecord(Uri uri) {
         return NdefRecord.createUri(uri);
+    }
+
+    private boolean requestPermissionIfNeeded(Activity activity, Intent intent) {
+        boolean needRequestPermission = false;
+        if (Intent.ACTION_CALL.equals(intent.getAction())) {
+            if (activity.checkSelfPermission(Manifest.permission.CALL_PHONE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                /* In case the user selected "Do not ask" for permission again.
+                 * Display a message on how to change the permission selection. */
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CALL_PHONE))
+                    Toast.makeText(activity.getApplicationContext(), R.string.call_phone_permission_denied, Toast.LENGTH_SHORT).show();
+                needRequestPermission = true;
+                activity.requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, 1);
+            }
+        }
+        return needRequestPermission;
     }
 }

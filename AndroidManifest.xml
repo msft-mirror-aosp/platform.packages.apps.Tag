@@ -25,6 +25,7 @@
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
 
     <uses-feature android:name="android.hardware.nfc" required="true" />
 
@@ -36,6 +37,7 @@
             android:label="@string/title_scanned_tag"
             android:launchMode="singleTop"
             android:priority="-10"
+            android:exported="true"
             android:permission="android.permission.NFC"
         >
             <!-- Offer to display anything with NDEF data -->
